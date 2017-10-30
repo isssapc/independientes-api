@@ -2,16 +2,16 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Jornadas extends MY_Controller {
+class Colonias extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
-
         //en el parent parent::__construct se ejecutan los operaciones de middleware
         $database = $this->middlewares['auth']->claims["db"];
         $this->db->db_select($database);
-
-        $this->load->model("jornada");
+        
+        $this->load->model("colonia");
+        
     }
 
     protected function middleware() {
@@ -27,45 +27,41 @@ class Jornadas extends MY_Controller {
     }
 
     public function index_get() {
-        $datos = $this->jornada->get_all();
+        $datos = $this->colonia->get_all();
         $this->response($datos);
     }
 
-//    public function get_jornadas_liga_get($id_liga) {
-//        $datos = $this->jornada->get_jornadas_liga($id_liga);
-//        $this->response($datos);
-//    }
+    public function get_colonia_get($id) {
+        $datos = $this->colonia->get_one($id);
+        $this->response($datos);
+    }
+ 
 
-    public function get_jornada_get($id) {
-        $datos = $this->jornada->get_one($id);
+    public function search_colonia_get($nombre) {
+        $datos = $this->colonia->search_by_nombre($nombre);
         $this->response($datos);
     }
 
-    public function search_jornada_get($nombre) {
-        $datos = $this->jornada->search_by_nombre($nombre);
-        $this->response($datos);
-    }
-
-    public function del_jornada_post($id) {
-        $count = $this->jornada->del_one($id);
+    public function del_colonia_post($id) {
+        $count = $this->colonia->del_one($id);
         $this->response(array("count" => $count));
     }
 
-    public function del_jornadas_post() {
-        $ids = $this->post("id_jornadas");
-        $datos = $this->jornada->del_many($ids);
+    public function del_colonias_post() {
+        $ids = $this->post("id_colonias");
+        $datos = $this->colonia->del_many($ids);
         $this->response($datos);
     }
 
-    public function create_jornada_post() {
-        $jornada = $this->post("jornada");
-        $datos = $this->jornada->create_one($jornada);
+    public function create_colonia_post() {
+        $colonia = $this->post("colonia");
+        $datos = $this->colonia->create_one($colonia);
         $this->response($datos);
     }
 
-    public function update_jornada_post($id) {
-        $jornada = $this->post("jornada");
-        $datos = $this->jornada->update_one($id, $jornada);
+    public function update_colonia_post($id) {
+        $colonia = $this->post("colonia");
+        $datos = $this->colonia->update_one($id, $colonia);
         $this->response($datos);
     }
 

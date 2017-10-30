@@ -1,6 +1,6 @@
 <?php
 
-class Jornada extends CI_Model {
+class Colonia extends CI_Model {
 
     public function __construct() {
         parent::__construct();
@@ -9,15 +9,16 @@ class Jornada extends CI_Model {
     public function get_all() {
 
         $sql = "SELECT *
-                FROM jornada";
+                FROM colonia";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
-    public function get_jornadas_liga($id_liga) {
+
+    public function get_colonias_liga($id_liga) {
 
         $sql = "SELECT *
-                FROM jornada
+                FROM colonia
                 WHERE id_liga=$id_liga";
         $query = $this->db->query($sql);
         return $query->result_array();
@@ -25,25 +26,25 @@ class Jornada extends CI_Model {
 
     public function get_one($id) {
 
-        $sql = "SELECT j.*
-                FROM jornada j
-                WHERE j.id_jornada= $id LIMIT 1";
+        $sql = "SELECT c.*
+                FROM colonia c
+                WHERE c.id_colonia= $id LIMIT 1";
         $query = $this->db->query($sql);
         return $query->row_array();
     }
 
     public function search_by_nombre($nombre) {
         $sql = "SELECT *
-                FROM jornada j 
-                WHERE j.nombre like '%$nombre%'";
+                FROM colonia c 
+                WHERE c.nombre like '%$nombre%'";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
     public function del_one($id) {
 
-        $this->db->where('id_jornada', $id);
-        $this->db->delete('jornada');
+        $this->db->where('id_colonia', $id);
+        $this->db->delete('colonia');
         $count = $this->db->affected_rows();
         return $count;
     }
@@ -56,29 +57,29 @@ class Jornada extends CI_Model {
     public function del_many($ids) {
 
         $sql = "SELECT t.*
-                FROM jornada j
-                WHERE c.id_jornada= $ids";
+                FROM colonia c
+                WHERE c.id_colonia= $ids";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
-    public function create_one($jornada) {
+    public function create_one($colonia) {
 
-        $this->db->insert('jornada', $jornada);
-        $id_jornada = $this->db->insert_id();
+        $this->db->insert('colonia', $colonia);
+        $id_colonia = $this->db->insert_id();
 
-        $jornada = $this->get_one($id_jornada);
-        return $jornada;
+        $colonia = $this->get_one($id_colonia);
+        return $colonia;
     }
 
     public function update_one($id, $props) {
 
-        $where = "id_jornada = $id";
-        $sql = $this->db->update_string('jornada', $props, $where);
+        $where = "id_colonia = $id";
+        $sql = $this->db->update_string('colonia', $props, $where);
         $this->db->query($sql);
 
-        $jornada = $this->get_one($id);
-        return $jornada;
+        $colonia = $this->get_one($id);
+        return $colonia;
     }
 
 }
