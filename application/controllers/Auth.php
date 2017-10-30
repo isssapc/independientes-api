@@ -22,7 +22,6 @@ class Auth extends MY_Controller {
          * exp => Expiration
          * iss => Issuer
          * aud => Audience
-         * 
          * * */
 
         $payload = [
