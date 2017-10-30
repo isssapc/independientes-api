@@ -28,8 +28,7 @@ class Auth extends MY_Controller {
         $payload = [
             "sub" => $user['id_usuario'],
             "rol" => $user['rol'],
-            "db" => $user["db"], //esta sería la base de datos
-            "group"=> $user["empresa"], //el group en el archivo de configuracion
+            "db" => $user["db"], //esta sería la base de datos          
             //"tipo" => $user['tipo'],
             "iat" => time(),
             "exp" => time() + (60 * 60 * 4) //1 hora * 4
