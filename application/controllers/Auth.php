@@ -16,20 +16,19 @@ class Auth extends MY_Controller {
 
     public function _create_token($user) {
 
-        /*         * *
+        /* * *
          * sub => Subject
          * iat => IssuedAt
          * exp => Expiration
          * iss => Issuer
          * aud => Audience
          * 
-         */
+         * * */
 
         $payload = [
             "sub" => $user['id_usuario'],
             "rol" => $user['rol'],
-            "db" => $user["db"], //esta sería la base de datos          
-            //"tipo" => $user['tipo'],
+            "db" => $user["db"], //esta sería la base de datos            
             "iat" => time(),
             "exp" => time() + (60 * 60 * 4) //1 hora * 4
         ];
