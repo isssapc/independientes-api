@@ -1,22 +1,3 @@
 {
-    "copyWatcher.sections": [
-        {
-            "source": ".",
-            "destination": "C:\\xampp\\htdocs\\independientes\\api",
-            "destinationRequired": false,
-            "includes": [
-                
-                "**/*.php",
-                "**/*.html",
-                "**/.htaccess"
-            ],
-            "excludes": [
-                "node_modules/**/*",
-                "out/**/*"
-            ],
-            "initialCopy": true,
-            "initialCopyReverse": false,
-            "deleteEnabled": true
-        }
-    ]
+   
 }
