@@ -64,6 +64,12 @@ class Colonias extends MY_Controller {
         $this->response($datos);
     }
 
+    public function create_colonias_post() {
+        $colonias = $this->post("colonias");
+        $datos = $this->colonia->create_many($colonias);
+        $this->response($datos);
+    }
+
     public function update_colonia_post($id) {
         $colonia = $this->post("colonia");
         $datos = $this->colonia->update_one($id, $colonia);
@@ -90,7 +96,9 @@ class Colonias extends MY_Controller {
             $data = $this->upload->data();
             //$this->response(["data" => $data]);
             $excel = $this->_excelToarray($data['file_name']);
-            $this->response(["excel" => $excel, "file" => $data]);
+            //$this->response(["excel" => $excel, "file" => $data]);
+            $data = $this->colonia->create_many($excel);
+            $this->response($data);
         }
     }
 
@@ -129,7 +137,7 @@ class Colonias extends MY_Controller {
         $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
 
         foreach ($sheetData as $fila) {
-            $data[] = array($fila['A'], $fila['B'], $fila['C'], $fila['D']);
+            $data[] = array("id_colonia" => $fila['A'], "clave" => $fila['B'], "nombre" => $fila['C'], "id_seccion" => $fila['D']);
         }
 
         return $data;

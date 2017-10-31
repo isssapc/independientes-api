@@ -14,7 +14,6 @@ class Colonia extends CI_Model {
         return $query->result_array();
     }
 
-
     public function get_colonias_liga($id_liga) {
 
         $sql = "SELECT *
@@ -70,6 +69,16 @@ class Colonia extends CI_Model {
 
         $colonia = $this->get_one($id_colonia);
         return $colonia;
+    }
+
+    public function create_many($colonias) {
+
+        $this->db->insert_batch('colonia', $colonias);
+        $count = $this->db->affected_rows();
+        return array("count" => $count);
+        //$id_colonia = $this->db->insert_id();
+        //$colonia = $this->get_one($id_colonia);
+        //return $colonia;
     }
 
     public function update_one($id, $props) {
