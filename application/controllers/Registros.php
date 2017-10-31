@@ -2,7 +2,7 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Secciones extends MY_Controller {
+class Registros extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -11,7 +11,7 @@ class Secciones extends MY_Controller {
         $database = $this->middlewares['auth']->claims["db"];
         $this->db->db_select($database);
 
-        $this->load->model("seccion");
+        $this->load->model("registro");
     }
 
     protected function middleware() {
@@ -27,47 +27,46 @@ class Secciones extends MY_Controller {
     }
 
     public function index_get() {
-        $datos = $this->seccion->get_all();
+        $datos = $this->registro->get_all();
         $this->response($datos);
     }
 
-
-    public function get_seccion_get($id) {
-        $datos = $this->seccion->get_one($id);
+    public function get_registro_get($id) {
+        $datos = $this->registro->get_one($id);
         $this->response($datos);
     }
 
-    public function search_seccion_get($nombre) {
-        $datos = $this->seccion->search_by_nombre($nombre);
+    public function search_registro_get($nombre) {
+        $datos = $this->registro->search_by_nombre($nombre);
         $this->response($datos);
     }
 
-    public function del_seccion_post($id) {
-        $count = $this->seccion->del_one($id);
+    public function del_registro_post($id) {
+        $count = $this->registro->del_one($id);
         $this->response(array("count" => $count));
     }
 
-    public function del_seccions_post() {
-        $ids = $this->post("id_seccions");
-        $datos = $this->seccion->del_many($ids);
+    public function del_registros_post() {
+        $ids = $this->post("id_registros");
+        $datos = $this->registro->del_many($ids);
         $this->response($datos);
     }
 
-    public function create_seccion_post() {
-        $seccion = $this->post("seccion");
-        $datos = $this->seccion->create_one($seccion);
+    public function create_registro_post() {
+        $registro = $this->post("registro");
+        $datos = $this->registro->create_one($registro);
         $this->response($datos);
     }
 
-    public function update_seccion_post($id) {
-        $seccion = $this->post("seccion");
-        $datos = $this->seccion->update_one($id, $seccion);
+    public function update_registro_post($id) {
+        $registro = $this->post("registro");
+        $datos = $this->registro->update_one($id, $registro);
         $this->response($datos);
     }
     
         
     public function upload_excel_post() {
-        $config['upload_path'] = './public/secciones';
+        $config['upload_path'] = './public/registros';
         $config['allowed_types'] = 'xls|xlsx';
         $config['max_size'] = 4096; //4MB
         $config['overwrite'] = FALSE;
