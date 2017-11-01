@@ -14,6 +14,23 @@ class Seccion extends CI_Model {
         return $query->result_array();
     }
 
+    public function get_count() {
+
+        return $this->db->count_all('seccion');
+    }
+
+    public function get_page($pageSize, $page) {
+
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
+
+        $sql = "SELECT *
+                FROM seccion LIMIT $offset,$pageSize";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
     public function get_one($id) {
 
         $sql = "SELECT s.*
@@ -60,6 +77,16 @@ class Seccion extends CI_Model {
 
         $seccion = $this->get_one($id_seccion);
         return $seccion;
+    }
+
+    public function create_many($secciones) {
+
+        $this->db->insert_batch('seccion', $secciones);
+        $count = $this->db->affected_rows();
+        return array("count" => $count);
+        //$id_colonia = $this->db->insert_id();
+        //$colonia = $this->get_one($id_colonia);
+        //return $colonia;
     }
 
     public function update_one($id, $props) {

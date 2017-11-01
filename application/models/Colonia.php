@@ -14,11 +14,19 @@ class Colonia extends CI_Model {
         return $query->result_array();
     }
 
-    public function get_colonias_liga($id_liga) {
+    public function get_count() {
+
+        return $this->db->count_all('colonia');
+    }
+
+    public function get_page($pageSize, $page) {
+
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
 
         $sql = "SELECT *
-                FROM colonia
-                WHERE id_liga=$id_liga";
+                FROM colonia LIMIT $offset,$pageSize";
         $query = $this->db->query($sql);
         return $query->result_array();
     }

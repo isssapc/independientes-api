@@ -2,6 +2,12 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/** Include path * */
+set_include_path(APPPATH . 'libraries/PHPExcel-1.8/Classes/');
+
+/** PHPExcel_IOFactory */
+include 'PHPExcel/IOFactory.php';
+
 class Secciones extends MY_Controller {
 
     public function __construct() {
@@ -31,6 +37,15 @@ class Secciones extends MY_Controller {
         $this->response($datos);
     }
 
+    public function get_count_get() {
+        $datos = $this->seccion->get_count();
+        $this->response($datos);
+    }
+
+    public function get_page_get($pageSize, $page) {
+        $datos = $this->seccion->get_page($pageSize, $page);
+        $this->response($datos);
+    }
 
     public function get_seccion_get($id) {
         $datos = $this->seccion->get_one($id);
@@ -43,6 +58,7 @@ class Secciones extends MY_Controller {
     }
 
     public function del_seccion_post($id) {
+        //$id= $this->post("id_registro");
         $count = $this->seccion->del_one($id);
         $this->response(array("count" => $count));
     }
@@ -64,8 +80,7 @@ class Secciones extends MY_Controller {
         $datos = $this->seccion->update_one($id, $seccion);
         $this->response($datos);
     }
-    
-        
+
     public function upload_excel_post() {
         $config['upload_path'] = './public/secciones';
         $config['allowed_types'] = 'xls|xlsx';
@@ -83,9 +98,75 @@ class Secciones extends MY_Controller {
             $this->response(["error" => $error], REST_Controller::HTTP_BAD_REQUEST);
         } else {
             $data = $this->upload->data();
-            $this->response(["data" => $data]);
-            //$this->excelToarray($data['file_name']);
+            $excel = $this->_excelToarray($data['file_name']);
+            $data = $this->seccion->create_many($excel);
+            $this->response($data);
         }
+    }
+
+    private function _excelToarray($filename) {
+        //creamos el reader
+        $nombre_archivo = "./public/secciones/" . $filename;
+
+        $tipo_archivo = PHPExcel_IOFactory::identify($nombre_archivo);
+        $reader = PHPExcel_IOFactory::createReader($tipo_archivo);
+        $reader->setReadDataOnly(true);
+
+
+        $worksheetData = $reader->listWorksheetInfo($nombre_archivo);
+        $totalRows = $worksheetData[0]["totalRows"];
+        $totalCols = $worksheetData[0]["totalColumns"];
+        $lastColLetter = $worksheetData[0]['lastColumnLetter'];
+
+
+
+        $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
+        $reader->setReadFilter($filtro);
+
+        $excel = $reader->load($nombre_archivo);
+
+
+        //$data = array("rows" => $totalRows, "cols" => $totalCols, "lastLetter" => $lastColLetter); //[];
+        //obtenemos los datos de la hoja activa (la primera)
+        $worksheet = $excel->getActiveSheet();
+        if (!isset($worksheet)) {
+            $worksheet = $excel->getSheet(0);
+        }
+
+        $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
+
+        foreach ($sheetData as $fila) {
+            $data[] = array(
+                "id_seccion" => $fila['A'],
+                //"nombre" => $fila['B'],
+                "num_electores" => $fila['B']
+            );
+        }
+
+        return $data;
+    }
+
+}
+
+class MyReadFilter implements PHPExcel_Reader_IReadFilter {
+
+    private $_startRow = 0;
+    private $_endRow = 0;
+    private $_columns = array();
+
+    public function __construct($startRow, $endRow, $columns) {
+        $this->_startRow = $startRow;
+        $this->_endRow = $endRow;
+        $this->_columns = $columns;
+    }
+
+    public function readCell($column, $row, $worksheetName = '') {
+        if ($row >= $this->_startRow && $row <= $this->_endRow) {
+            if (in_array($column, $this->_columns)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

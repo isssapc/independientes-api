@@ -9,16 +9,39 @@ class Registro extends CI_Model {
     public function get_all() {
 
         $sql = "SELECT *
-                FROM registro";
+                FROM registro LIMIT 100";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
-    public function get_registroes_equipo($id_equipo) {
+    public function group_by_seccion() {
+
+        $sql = "SELECT 
+                r.id_seccion, 
+                s.num_electores, 
+                count(*) AS num_registros, 
+                (count(*)/s.num_electores) AS porcentaje
+                FROM registro r
+                JOIN seccion s ON s.id_seccion= r.id_seccion
+                GROUP BY r.id_seccion
+                ORDER BY r.id_seccion;";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function get_count() {
+
+        return $this->db->count_all('registro');
+    }
+
+    public function get_page($pageSize, $page) {
+
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
 
         $sql = "SELECT *
-                FROM registro
-                WHERE id_equipo= $id_equipo";
+                FROM registro LIMIT $offset,$pageSize";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -69,6 +92,16 @@ class Registro extends CI_Model {
 
         $registro = $this->get_one($id_registro);
         return $registro;
+    }
+
+    public function create_many($registros) {
+
+        $this->db->insert_batch('registro', $registros);
+        $count = $this->db->affected_rows();
+        return array("count" => $count);
+        //$id_colonia = $this->db->insert_id();
+        //$colonia = $this->get_one($id_colonia);
+        //return $colonia;
     }
 
     public function update_one($id, $props) {

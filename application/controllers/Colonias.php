@@ -37,6 +37,16 @@ class Colonias extends MY_Controller {
         $this->response($datos);
     }
 
+    public function get_count_get() {
+        $datos = $this->colonia->get_count();
+        $this->response($datos);
+    }
+
+    public function get_page_get($pageSize, $page) {
+        $datos = $this->colonia->get_page($pageSize, $page);
+        $this->response($datos);
+    }
+
     public function get_colonia_get($id) {
         $datos = $this->colonia->get_one($id);
         $this->response($datos);
@@ -96,7 +106,6 @@ class Colonias extends MY_Controller {
             $data = $this->upload->data();
             //$this->response(["data" => $data]);
             $excel = $this->_excelToarray($data['file_name']);
-            //$this->response(["excel" => $excel, "file" => $data]);
             $data = $this->colonia->create_many($excel);
             $this->response($data);
         }
@@ -104,28 +113,21 @@ class Colonias extends MY_Controller {
 
     private function _excelToarray($filename) {
         //creamos el reader
-        //$nombre_archivo = "public/colonias/" . $filename;
-        $nombre_archivo = "./public/colonias/mis_colonias.xlsx";
-
-        //$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($nombre_archivo);
+        $nombre_archivo = "./public/colonias/" . $filename;
 
         $tipo_archivo = PHPExcel_IOFactory::identify($nombre_archivo);
         $reader = PHPExcel_IOFactory::createReader($tipo_archivo);
         $reader->setReadDataOnly(true);
-
 
         $worksheetData = $reader->listWorksheetInfo($nombre_archivo);
         $totalRows = $worksheetData[0]["totalRows"];
         $totalCols = $worksheetData[0]["totalColumns"];
         $lastColLetter = $worksheetData[0]['lastColumnLetter'];
 
-
-
         $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
         $reader->setReadFilter($filtro);
 
         $excel = $reader->load($nombre_archivo);
-
 
         //$data = array("rows" => $totalRows, "cols" => $totalCols, "lastLetter" => $lastColLetter); //[];
         //obtenemos los datos de la hoja activa (la primera)
@@ -137,7 +139,12 @@ class Colonias extends MY_Controller {
         $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
 
         foreach ($sheetData as $fila) {
-            $data[] = array("id_colonia" => $fila['A'], "clave" => $fila['B'], "nombre" => $fila['C'], "id_seccion" => $fila['D']);
+            $data[] = array(
+                //"id_colonia" => $fila['A'],
+                "clave" => $fila['A'],
+                "nombre" => $fila['B'],
+                "id_seccion" => $fila['C']
+            );
         }
 
         return $data;
