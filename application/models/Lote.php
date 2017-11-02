@@ -4,6 +4,8 @@ class Lote extends CI_Model {
 
     public function __construct() {
         parent::__construct();
+        $timezone = 'America/Mexico_City';
+        date_default_timezone_set($timezone);
     }
 
     public function get_all() {
@@ -13,7 +15,6 @@ class Lote extends CI_Model {
         $query = $this->db->query($sql);
         return $query->result_array();
     }
-
 
     public function get_one($id) {
 
@@ -55,6 +56,9 @@ class Lote extends CI_Model {
     }
 
     public function create_one($lote) {
+
+        $now = date("Y-m-d H:i:s");
+        $lote["fecha"] = $now;
 
         $this->db->insert('lote', $lote);
         $id_lote = $this->db->insert_id();

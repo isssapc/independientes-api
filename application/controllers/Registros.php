@@ -18,6 +18,7 @@ class Registros extends MY_Controller {
         $this->db->db_select($database);
 
         $this->load->model("registro");
+        $this->load->model("lote");
     }
 
     protected function middleware() {
@@ -110,6 +111,13 @@ class Registros extends MY_Controller {
 
     public function upload_excel_post() {
 
+        $responsable = $this->post("responsable");
+        $nombre_lote = $this->post("lote");
+        $lote = ["responsable" => $responsable, "nombre" => $nombre_lote];
+
+        $lote = $this->lote->create_one($lote);
+
+
         $config['upload_path'] = './public/registros';
         $config['allowed_types'] = 'xls|xlsx';
         $config['max_size'] = 4096; //4MB
@@ -125,11 +133,12 @@ class Registros extends MY_Controller {
             $error = $this->upload->error_msg;
             $this->response(["error" => $error], REST_Controller::HTTP_BAD_REQUEST);
         } else {
-            $data = $this->upload->data();
-            //$this->response(["data" => $data]);
-            $excel = $this->_excelToarray($data['file_name']);
-            $data = $this->registro->create_many($excel);
-            $this->response($data);
+//            $data = $this->upload->data();            
+//            $excel = $this->_excelToarray($data['file_name']);
+//            $data = $this->registro->create_many($excel);
+//            $this->response($data);
+
+            $this->response($lote);
         }
     }
 
