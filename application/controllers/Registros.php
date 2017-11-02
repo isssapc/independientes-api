@@ -47,8 +47,18 @@ class Registros extends MY_Controller {
         $this->response($datos);
     }
 
+    public function get_count_error_get() {
+        $datos = $this->registro->get_count_error();
+        $this->response($datos);
+    }
+
     public function get_page_get($pageSize, $page) {
         $datos = $this->registro->get_page($pageSize, $page);
+        $this->response($datos);
+    }
+
+    public function get_page_error_get($pageSize, $page) {
+        $datos = $this->registro->get_page_error($pageSize, $page);
         $this->response($datos);
     }
 
@@ -68,6 +78,12 @@ class Registros extends MY_Controller {
         $this->response(array("count" => $count));
     }
 
+    public function del_registro_error_post($id) {
+        //$id= $this->post("id_registro");
+        $count = $this->registro->del_one_error($id);
+        $this->response(array("count" => $count));
+    }
+
     public function del_registros_post() {
         $ids = $this->post("id_registros");
         $datos = $this->registro->del_many($ids);
@@ -83,6 +99,12 @@ class Registros extends MY_Controller {
     public function update_registro_post($id) {
         $registro = $this->post("registro");
         $datos = $this->registro->update_one($id, $registro);
+        $this->response($datos);
+    }
+
+    public function update_registro_error_post($id) {
+        $registro = $this->post("registro");
+        $datos = $this->registro->update_one_error($id, $registro);
         $this->response($datos);
     }
 
@@ -122,7 +144,8 @@ class Registros extends MY_Controller {
         $worksheetData = $reader->listWorksheetInfo($nombre_archivo);
         $totalRows = $worksheetData[0]["totalRows"];
         $totalCols = $worksheetData[0]["totalColumns"];
-        $lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        //$lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        $lastColLetter = 'H';
 
         $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
         $reader->setReadFilter($filtro);
@@ -140,12 +163,14 @@ class Registros extends MY_Controller {
 
         foreach ($sheetData as $fila) {
             $data[] = array(
-                "clave_elector" => $fila['A'],
-                "ocr" => $fila['B'],
-                "nombre" => $fila['C'],
-                "cel" => $fila['D'],
-                "id_seccion" => $fila['E'],
-                "id_colonia" => $fila['F']
+                "folio" => $fila['A'],
+                "clave_elector" => $fila['B'],
+                "ocr" => $fila['C'],
+                "ap_paterno" => $fila['D'],
+                "ap_materno" => $fila['E'],
+                "nombre" => $fila['F'],
+                "cel" => $fila['G'],
+                "id_seccion" => $fila['H']
             );
         }
 

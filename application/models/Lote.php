@@ -1,6 +1,6 @@
 <?php
 
-class Liga extends CI_Model {
+class Lote extends CI_Model {
 
     public function __construct() {
         parent::__construct();
@@ -9,32 +9,24 @@ class Liga extends CI_Model {
     public function get_all() {
 
         $sql = "SELECT *
-                FROM liga";
+                FROM lote";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
-    public function get_ligas_temporada($id_temporada) {
-
-        $sql = "SELECT *
-                FROM liga
-                WHERE id_temporada=$id_temporada";
-        $query = $this->db->query($sql);
-        return $query->result_array();
-    }
 
     public function get_one($id) {
 
         $sql = "SELECT l.*
-                FROM liga l
-                WHERE l.id_liga= $id LIMIT 1";
+                FROM lote l
+                WHERE l.id_lote= $id LIMIT 1";
         $query = $this->db->query($sql);
         return $query->row_array();
     }
 
     public function search_by_nombre($nombre) {
         $sql = "SELECT *
-                FROM liga l 
+                FROM lote l 
                 WHERE l.nombre like '%$nombre%'";
         $query = $this->db->query($sql);
         return $query->result_array();
@@ -42,8 +34,8 @@ class Liga extends CI_Model {
 
     public function del_one($id) {
 
-        $this->db->where('id_liga', $id);
-        $this->db->delete('liga');
+        $this->db->where('id_lote', $id);
+        $this->db->delete('lote');
         $count = $this->db->affected_rows();
         return $count;
     }
@@ -55,30 +47,30 @@ class Liga extends CI_Model {
 
     public function del_many($ids) {
 
-        $sql = "SELECT t.*
-                FROM liga l
-                WHERE c.id_liga= $ids";
+        $sql = "SELECT l.*
+                FROM lote l
+                WHERE l.id_lote= $ids";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
-    public function create_one($liga) {
+    public function create_one($lote) {
 
-        $this->db->insert('liga', $liga);
-        $id_liga = $this->db->insert_id();
+        $this->db->insert('lote', $lote);
+        $id_lote = $this->db->insert_id();
 
-        $liga = $this->get_one($id_liga);
-        return $liga;
+        $lote = $this->get_one($id_lote);
+        return $lote;
     }
 
     public function update_one($id, $props) {
 
-        $where = "id_liga = $id";
-        $sql = $this->db->update_string('liga', $props, $where);
+        $where = "id_lote = $id";
+        $sql = $this->db->update_string('lote', $props, $where);
         $this->db->query($sql);
 
-        $liga = $this->get_one($id);
-        return $liga;
+        $lote = $this->get_one($id);
+        return $lote;
     }
 
 }
