@@ -180,7 +180,7 @@ class Registro extends CI_Model {
         $sql = $this->db->update_string('registro_error', $props, $where);
         $this->db->query($sql);
 
-        $registro = $this->get_one($id);
+        $registro = $this->get_one_error($id);
         return $registro;
     }
 
