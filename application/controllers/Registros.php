@@ -133,12 +133,17 @@ class Registros extends MY_Controller {
             $error = $this->upload->error_msg;
             $this->response(["error" => $error], REST_Controller::HTTP_BAD_REQUEST);
         } else {
-//            $data = $this->upload->data();            
-//            $excel = $this->_excelToarray($data['file_name']);
-//            $data = $this->registro->create_many($excel);
-//            $this->response($data);
-
+            $data = $this->upload->data();
+            //leemos los datos del array
+            $excel = $this->_excelToarray($data['file_name']);
+            //insertamos en la tabla de validos o errores
+            $num_registros = $this->registro->create_many($excel);
+            //actualizamos el lote con el numero de registros
+            $lote = $this->lote->update_one($lote["id_lote"], $num_registros);
+            //devolvemos el lote con el conteo de registros
             $this->response($lote);
+
+            //$this->response($lote);
         }
     }
 

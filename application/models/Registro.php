@@ -161,7 +161,7 @@ class Registro extends CI_Model {
             }
         }
 
-        return array("num_validos" => $count, "num_errores" => $count_errores);
+        return array("num_registros_validos" => $count, "num_registros_errores" => $count_errores);
     }
 
     public function update_one($id, $props) {
