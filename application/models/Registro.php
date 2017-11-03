@@ -39,6 +39,22 @@ class Registro extends CI_Model {
         return $this->db->count_all('registro_error');
     }
 
+    public function get_count_error_lote($id_lote) {
+
+        $sql = "SELECT COUNT(*) AS count FROM registro_error WHERE id_lote=$id_lote";
+        $query = $this->db->query($sql);
+        $row = $query->row();
+        return $row->count;
+    }
+
+    public function get_count_validos_lote($id_lote) {
+
+        $sql = "SELECT COUNT(*) AS count FROM registro WHERE id_lote=$id_lote";
+        $query = $this->db->query($sql);
+        $row = $query->row();
+        return $row->count;
+    }
+
     public function get_page($pageSize, $page) {
 
         $pageSize = intval($pageSize);
@@ -59,6 +75,32 @@ class Registro extends CI_Model {
 
         $sql = "SELECT *
                 FROM registro_error LIMIT $offset,$pageSize";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function get_page_error_lote($id_lote, $pageSize, $page) {
+
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
+
+        $sql = "SELECT *
+                FROM registro_error 
+                WHERE id_lote= $id_lote LIMIT $offset,$pageSize ";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function get_page_validos_lote($id_lote, $pageSize, $page) {
+
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
+
+        $sql = "SELECT *
+                FROM registro 
+                WHERE id_lote= $id_lote LIMIT $offset,$pageSize ";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -137,7 +179,7 @@ class Registro extends CI_Model {
         return $registro;
     }
 
-    public function create_many($registros) {
+    public function create_many($id_lote, $registros) {
 
         //$this->db->insert_batch('registro', $registros);
         //$count = $this->db->affected_rows();
@@ -149,7 +191,7 @@ class Registro extends CI_Model {
         $count = 0;
         $count_errores = 0;
         for ($i = 0; $i < count($registros); $i++) {
-
+            $registros[$i]["id_lote"] = $id_lote;
             $error = $this->tieneErrores($registros[$i]);
             if ($error === false) {
                 $this->db->insert('registro', $registros[$i]);

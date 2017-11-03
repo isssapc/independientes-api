@@ -53,6 +53,16 @@ class Registros extends MY_Controller {
         $this->response($datos);
     }
 
+    public function get_count_error_lote_get($id_lote) {
+        $datos = $this->registro->get_count_error_lote($id_lote);
+        $this->response($datos);
+    }
+
+    public function get_count_validos_lote_get($id_lote) {
+        $datos = $this->registro->get_count_validos_lote($id_lote);
+        $this->response($datos);
+    }
+
     public function get_page_get($pageSize, $page) {
         $datos = $this->registro->get_page($pageSize, $page);
         $this->response($datos);
@@ -60,6 +70,16 @@ class Registros extends MY_Controller {
 
     public function get_page_error_get($pageSize, $page) {
         $datos = $this->registro->get_page_error($pageSize, $page);
+        $this->response($datos);
+    }
+
+    public function get_page_error_lote_get($id_lote, $pageSize, $page) {
+        $datos = $this->registro->get_page_error_lote($id_lote, $pageSize, $page);
+        $this->response($datos);
+    }
+
+    public function get_page_validos_lote_get($id_lote, $pageSize, $page) {
+        $datos = $this->registro->get_page_validos_lote($id_lote, $pageSize, $page);
         $this->response($datos);
     }
 
@@ -137,7 +157,7 @@ class Registros extends MY_Controller {
             //leemos los datos del array
             $excel = $this->_excelToarray($data['file_name']);
             //insertamos en la tabla de validos o errores
-            $num_registros = $this->registro->create_many($excel);
+            $num_registros = $this->registro->create_many($lote["id_lote"], $excel);
             //actualizamos el lote con el numero de registros
             $lote = $this->lote->update_one($lote["id_lote"], $num_registros);
             //devolvemos el lote con el conteo de registros

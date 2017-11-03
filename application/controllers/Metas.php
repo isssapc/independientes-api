@@ -2,7 +2,7 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Temporadas extends MY_Controller {
+class Metas extends MY_Controller {
 
     public $empresa;
 
@@ -13,7 +13,7 @@ class Temporadas extends MY_Controller {
 
         //$this->load->database($this->empresa["org"]);
         $this->db->db_select($this->empresa["db"]);
-        $this->load->model("temporada");
+        $this->load->model("meta");
     }
 
     protected function middleware() {
@@ -30,42 +30,42 @@ class Temporadas extends MY_Controller {
 
     public function index_get() {
         
-        $datos = $this->temporada->get_all();
+        $datos = $this->meta->get_all();
         //$datos["empresa"] = $this->empresa;
         //$datos["default"] = $this->config->item("index_page");
         $this->response($datos);
     }
 
-    public function get_temporada_get($id) {
-        $datos = $this->temporada->get_one($id);
+    public function get_meta_get($id) {
+        $datos = $this->meta->get_one($id);
         $this->response($datos);
     }
 
-    public function search_temporada_get($nombre) {
-        $datos = $this->temporada->search_by_nombre($nombre);
+    public function search_meta_get($nombre) {
+        $datos = $this->meta->search_by_nombre($nombre);
         $this->response($datos);
     }
 
-    public function del_temporada_post($id) {
-        $count = $this->temporada->del_one($id);
+    public function del_meta_post($id) {
+        $count = $this->meta->del_one($id);
         $this->response(array("count" => $count));
     }
 
-    public function del_temporadas_post() {
-        $ids = $this->post("id_temporadas");
-        $datos = $this->temporada->del_many($ids);
+    public function del_metas_post() {
+        $ids = $this->post("id_metas");
+        $datos = $this->meta->del_many($ids);
         $this->response($datos);
     }
 
-    public function create_temporada_post() {
-        $temporada = $this->post("temporada");
-        $datos = $this->temporada->create_one($temporada);
+    public function create_meta_post() {
+        $meta = $this->post("meta");
+        $datos = $this->meta->create_one($meta);
         $this->response($datos);
     }
 
-    public function update_temporada_post($id) {
-        $temporada = $this->post("temporada");
-        $datos = $this->temporada->update_one($id, $temporada);
+    public function update_meta_post($id) {
+        $meta = $this->post("meta");
+        $datos = $this->meta->update_one($id, $meta);
         $this->response($datos);
     }
 
