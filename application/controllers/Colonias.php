@@ -141,7 +141,7 @@ class Colonias extends MY_Controller {
         foreach ($sheetData as $fila) {
             $data[] = array(
                 //"id_colonia" => $fila['A'],
-                "id_colonia" => $fila['A'],
+                //"id_colonia" => $fila['A'],
                 "nombre" => $fila['B'],
                 "id_seccion" => $fila['C']
             );
