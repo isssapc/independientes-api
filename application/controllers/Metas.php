@@ -29,10 +29,8 @@ class Metas extends MY_Controller {
     }
 
     public function index_get() {
-        
+
         $datos = $this->meta->get_all();
-        //$datos["empresa"] = $this->empresa;
-        //$datos["default"] = $this->config->item("index_page");
         $this->response($datos);
     }
 
@@ -41,20 +39,9 @@ class Metas extends MY_Controller {
         $this->response($datos);
     }
 
-    public function search_meta_get($nombre) {
-        $datos = $this->meta->search_by_nombre($nombre);
-        $this->response($datos);
-    }
-
     public function del_meta_post($id) {
         $count = $this->meta->del_one($id);
         $this->response(array("count" => $count));
-    }
-
-    public function del_metas_post() {
-        $ids = $this->post("id_metas");
-        $datos = $this->meta->del_many($ids);
-        $this->response($datos);
     }
 
     public function create_meta_post() {
@@ -63,9 +50,9 @@ class Metas extends MY_Controller {
         $this->response($datos);
     }
 
-    public function update_meta_post($id) {
+    public function update_meta_post() {
         $meta = $this->post("meta");
-        $datos = $this->meta->update_one($id, $meta);
+        $datos = $this->meta->update_one($meta);
         $this->response($datos);
     }
 

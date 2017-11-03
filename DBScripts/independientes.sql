@@ -1,3 +1,17 @@
+SELECT * FROM independientes.meta;CREATE TABLE `meta` (
+  `id_config` int(11) NOT NULL AUTO_INCREMENT,
+  `padron` int(11) DEFAULT NULL,
+  `meta_padron` decimal(4,2) DEFAULT NULL,
+  `num_secciones` int(11) DEFAULT NULL,
+  `meta_secciones` decimal(4,2) DEFAULT NULL,
+  `descripcion` varchar(45) DEFAULT NULL,
+  `candidato` varchar(45) DEFAULT NULL,
+  `nombre` varchar(45) NOT NULL,
+  PRIMARY KEY (`id_config`),
+  UNIQUE KEY `candidatura_UNIQUE` (`nombre`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+
 CREATE TABLE `colonia` (
   `id_colonia` int(11) NOT NULL AUTO_INCREMENT,
   `clave` int(11) NOT NULL,

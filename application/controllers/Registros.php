@@ -19,6 +19,7 @@ class Registros extends MY_Controller {
 
         $this->load->model("registro");
         $this->load->model("lote");
+        $this->load->model("meta");
     }
 
     protected function middleware() {
@@ -36,6 +37,30 @@ class Registros extends MY_Controller {
     public function index_get() {
         $datos = $this->registro->get_all();
         $this->response($datos);
+    }
+
+    public function get_resumen_get() {
+        $metas = $this->meta->get_one(1);
+        $num_firmas = $this->registro->get_count();
+        $num_firmas_necesarias = $metas["padron"] * ($metas["meta_padron"] / 100);
+        $pct_firmas = $num_firmas / $metas["padron"];
+        $num_firmas_restantes = $num_firmas_necesarias - $num_firmas;
+
+
+
+        $resumen = array(
+            "padron" => $metas["padron"],
+            "num_secciones" => $metas["num_secciones"],
+            "meta_padron" => $metas["meta_padron"],
+            "meta_secciones" => $metas["meta_secciones"],
+            "num_firmas" => $num_firmas,
+            "num_firmas_necesarias" => $num_firmas_necesarias,
+            "num_firmas_restantes" => $num_firmas_restantes,
+            "pct_firmas" => $pct_firmas,
+            "debug1" => ($metas["meta_padron"] / 100),
+        );
+
+        $this->response($resumen);
     }
 
     public function group_by_seccion_get() {
