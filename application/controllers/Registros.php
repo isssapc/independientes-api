@@ -31,7 +31,7 @@ class Registros extends MY_Controller {
          * someother|except:index,list   // This will be only applied to posts()
          * yet_another_one|only:index    // This will be only applied to index()
          * */
-        return array('auth');
+        return array('auth|except:exportar_excel_get');
     }
 
     public function index_get() {
@@ -234,6 +234,39 @@ class Registros extends MY_Controller {
         }
 
         return $data;
+    }
+
+    public function exportar_excel_get() {
+        $registros = $this->registro->get_all();
+        $excel = new PHPExcel();
+        $workSheet = new PHPExcel_Worksheet($excel, "Firmas");
+        $excel->addSheet($workSheet, 0);
+
+        $encabezados = ["Folio", "Clave Elector", "OCR", "Apellido Paterno", "Apellido Materno", "Nombre", "Sección", "Lote"];
+        $workSheet->fromArray($encabezados, NULL, "A1");
+        //$colEncabezados = array_chunk($encabezados, 1);
+        //$workSheet->fromArray($colEncabezados, NULL, "A1");
+
+        $workSheet->fromArray($registros, NULL, "A2");
+
+        $writer = PHPExcel_IOFactory::createWriter($excel, "Excel2007");
+
+        // redirect output to client browser
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="firmas.xlsx"');
+        header('Cache-Control: max-age=0');
+
+
+        $writer->save('php://output');
+
+
+        //$writer->save("./public/prueba.xlsx");
+//        
+//        
+//        $content=file_get_contents("./public/prueba.xlsx");
+        //$this->load->helper('download');
+//        force_download("prueba.xlsx",$content, true);
+        //force_download("./public/prueba.xlsx", NULL, true);
     }
 
 }
