@@ -14,6 +14,53 @@ class Registro extends CI_Model {
         return $query->result_array();
     }
 
+    public function get_all_to_export() {
+
+        $sql = "SELECT 
+                folio,
+                SUBSTR(clave_elector, 1,1) AS c1,
+                SUBSTR(clave_elector, 2,1) AS c2,
+                SUBSTR(clave_elector, 3,1) AS c3,
+                SUBSTR(clave_elector, 4,1) AS c4,
+                SUBSTR(clave_elector, 5,1) AS c5,
+                SUBSTR(clave_elector, 6,1) AS c6,
+                SUBSTR(clave_elector, 7,1) AS c7,
+                SUBSTR(clave_elector, 8,1) AS c8,
+                SUBSTR(clave_elector, 9,1) AS c9,
+                SUBSTR(clave_elector, 10,1) AS c10,
+                SUBSTR(clave_elector, 11,1) AS c11,
+                SUBSTR(clave_elector, 12,1) AS c12,
+                SUBSTR(clave_elector, 13,1) AS c13,
+                SUBSTR(clave_elector, 14,1) AS c14,
+                SUBSTR(clave_elector, 15,1) AS c15,
+                SUBSTR(clave_elector, 16,1) AS c16,
+                SUBSTR(clave_elector, 17,1) AS c17,
+                SUBSTR(clave_elector, 18,1) AS c18,
+                SUBSTR(ocr, 1,1) AS o1,
+                SUBSTR(ocr, 2,1) AS o2,
+                SUBSTR(ocr, 3,1) AS o3,
+                SUBSTR(ocr, 4,1) AS o4,
+                SUBSTR(ocr, 5,1) AS o5,
+                SUBSTR(ocr, 6,1) AS o6,
+                SUBSTR(ocr, 7,1) AS o7,
+                SUBSTR(ocr, 8,1) AS o8,
+                SUBSTR(ocr, 9,1) AS o9,
+                SUBSTR(ocr, 10,1) AS o10,
+                SUBSTR(ocr, 11,1) AS o11,
+                SUBSTR(ocr, 12,1) AS o12,
+                SUBSTR(ocr, 13,1) AS o13,
+                ap_paterno,
+                ap_materno,
+                nombre,
+                SUBSTR(id_seccion, 1,1) AS s1,
+                SUBSTR(id_seccion, 2,1) AS s2,
+                SUBSTR(id_seccion, 3,1) AS s3,
+                SUBSTR(id_seccion, 4,1) AS s4
+                FROM registro LIMIT 5000";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
     public function group_by_seccion() {
 
         $sql = "SELECT 
@@ -123,11 +170,15 @@ class Registro extends CI_Model {
         return $query->row_array();
     }
 
-    public function search_by_nombre($nombre) {
-        $sql = "SELECT *
-                FROM registro r 
-                WHERE r.nombre like '%$nombre%'";
-        $query = $this->db->query($sql);
+    public function search_by($texto, $tipo) {
+//        $sql = "SELECT *
+//                FROM registro r 
+//                WHERE r.nombre like '%$nombre%'";
+
+        $this->db->like($tipo, $texto);
+        $this->db->limit(100);
+        $query = $this->db->get("registro");
+        //$query = $this->db->query($sql);
         return $query->result_array();
     }
 

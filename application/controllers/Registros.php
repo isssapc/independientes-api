@@ -113,8 +113,10 @@ class Registros extends MY_Controller {
         $this->response($datos);
     }
 
-    public function search_registro_get($nombre) {
-        $datos = $this->registro->search_by_nombre($nombre);
+    public function buscar_registros_post() {
+        $texto = $this->post("texto");
+        $tipo = $this->post("tipo_busqueda");
+        $datos = $this->registro->search_by($texto, $tipo);
         $this->response($datos);
     }
 
@@ -237,13 +239,13 @@ class Registros extends MY_Controller {
     }
 
     public function exportar_excel_get() {
-        $registros = $this->registro->get_all();
+        $registros = $this->registro->get_all_to_export();
         $excel = new PHPExcel();
         $workSheet = new PHPExcel_Worksheet($excel, "Firmas");
         $excel->addSheet($workSheet, 0);
 
-        $encabezados = ["Folio", "Clave Elector", "OCR", "Apellido Paterno", "Apellido Materno", "Nombre", "Sección", "Lote"];
-        $workSheet->fromArray($encabezados, NULL, "A1");
+        //$encabezados = ["Folio", "Clave Elector", "OCR", "Apellido Paterno", "Apellido Materno", "Nombre", "Sección", "Lote"];
+        //$workSheet->fromArray($encabezados, NULL, "A1");
         //$colEncabezados = array_chunk($encabezados, 1);
         //$workSheet->fromArray($colEncabezados, NULL, "A1");
 
