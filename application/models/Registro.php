@@ -170,16 +170,29 @@ class Registro extends CI_Model {
         return $query->row_array();
     }
 
-    public function search_by($texto, $tipo) {
+    public function search_by($texto, $tipo, $page, $pageSize) {
 //        $sql = "SELECT *
 //                FROM registro r 
 //                WHERE r.nombre like '%$nombre%'";
 
+        $pageSize = intval($pageSize);
+        $page = intval($page);
+        $offset = $pageSize * $page;
+        $count = 0;
+
+
         $this->db->like($tipo, $texto);
-        $this->db->limit(100);
+        $this->db->from("registro");
+        $count = $this->db->count_all_results();
+
+
+        $this->db->like($tipo, $texto);
+        $this->db->limit($pageSize, $offset);
         $query = $this->db->get("registro");
+        $registros = $query->result_array();
+
         //$query = $this->db->query($sql);
-        return $query->result_array();
+        return array("registros" => $registros, "count" => $count, "page" => $page, "pageSize" => $pageSize, "offset" => $offset);
     }
 
     public function del_one($id) {

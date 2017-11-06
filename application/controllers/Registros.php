@@ -116,7 +116,10 @@ class Registros extends MY_Controller {
     public function buscar_registros_post() {
         $texto = $this->post("texto");
         $tipo = $this->post("tipo_busqueda");
-        $datos = $this->registro->search_by($texto, $tipo);
+        $pageSize = $this->post("page_size");
+        $page = $this->post("page");
+        
+        $datos = $this->registro->search_by($texto, $tipo, $page, $pageSize);
         $this->response($datos);
     }
 
