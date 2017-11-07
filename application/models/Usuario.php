@@ -6,11 +6,12 @@ class Usuario extends CI_Model {
         parent::__construct();
     }
 
-    public function get_all() {
+    public function get_all($database) {
 
         $sql = "SELECT u.*, t.tipo AS tipo_usuario
                 FROM usuario u
-                JOIN tipo_usuario t ON t.id_tipo_usuario=u.id_tipo_usuario";
+                JOIN tipo_usuario t ON t.id_tipo_usuario=u.id_tipo_usuario
+                WHERE u.db='$database'";
         $query = $this->db->query($sql);
         return $query->result_array();
     }

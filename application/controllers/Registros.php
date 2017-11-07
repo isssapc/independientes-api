@@ -45,6 +45,7 @@ class Registros extends MY_Controller {
         $num_firmas_necesarias = $metas["padron"] * ($metas["meta_padron"] / 100);
         $pct_firmas = $num_firmas / $metas["padron"];
         $num_firmas_restantes = $num_firmas_necesarias - $num_firmas;
+        $pct_pendiente = ($metas["meta_padron"] / 100) - $pct_firmas;
 
 
 
@@ -57,6 +58,7 @@ class Registros extends MY_Controller {
             "num_firmas_necesarias" => $num_firmas_necesarias,
             "num_firmas_restantes" => $num_firmas_restantes,
             "pct_firmas" => $pct_firmas,
+            "pct_pendiente" => $pct_pendiente,
             "debug1" => ($metas["meta_padron"] / 100),
         );
 
@@ -118,7 +120,7 @@ class Registros extends MY_Controller {
         $tipo = $this->post("tipo_busqueda");
         $pageSize = $this->post("page_size");
         $page = $this->post("page");
-        
+
         $datos = $this->registro->search_by($texto, $tipo, $page, $pageSize);
         $this->response($datos);
     }
@@ -233,8 +235,8 @@ class Registros extends MY_Controller {
                 "ap_paterno" => $fila['D'],
                 "ap_materno" => $fila['E'],
                 "nombre" => $fila['F'],
-                "cel" => $fila['G'],
-                "id_seccion" => $fila['H']
+                //"cel" => $fila['G'],
+                "id_seccion" => $fila['G']
             );
         }
 
