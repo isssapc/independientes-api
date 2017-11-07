@@ -8,9 +8,8 @@ class Usuario extends CI_Model {
 
     public function get_all($database) {
 
-        $sql = "SELECT u.*, t.tipo AS tipo_usuario
-                FROM usuario u
-                JOIN tipo_usuario t ON t.id_tipo_usuario=u.id_tipo_usuario
+        $sql = "SELECT u.*
+                FROM usuario u                
                 WHERE u.db='$database'";
         $query = $this->db->query($sql);
         return $query->result_array();
@@ -26,9 +25,8 @@ class Usuario extends CI_Model {
 
     public function get_one($id) {
 
-        $sql = "SELECT u.*, t.tipo AS tipo_usuario
-                FROM usuario u
-                JOIN tipo_usuario t ON t.id_tipo_usuario= u.id_tipo_usuario
+        $sql = "SELECT u.*
+                FROM usuario u                
                 WHERE u.id_usuario= $id LIMIT 1";
         $query = $this->db->query($sql);
         return $query->row_array();
