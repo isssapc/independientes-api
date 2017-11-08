@@ -35,6 +35,15 @@ class Lote extends CI_Model {
 
     public function del_one($id) {
 
+        //borrarmos los registros
+        $this->db->where('id_lote', $id);
+        $this->db->delete('registro');
+
+        //borramos los errores
+        $this->db->where('id_lote', $id);
+        $this->db->delete('registro_error');
+
+        //borramos el lote
         $this->db->where('id_lote', $id);
         $this->db->delete('lote');
         $count = $this->db->affected_rows();
