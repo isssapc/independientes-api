@@ -10,11 +10,14 @@ include 'PHPExcel/IOFactory.php';
 
 class Registros extends MY_Controller {
 
+    private $dir;
+
     public function __construct() {
         parent::__construct();
 
         //en el parent parent::__construct se ejecutan los operaciones de middleware
         $database = $this->middlewares['auth']->claims["db"];
+        $this->dir = $this->middlewares['auth']->claims["dir"];
         $this->db->db_select($database);
 
         $this->load->model("registro");
@@ -59,7 +62,6 @@ class Registros extends MY_Controller {
             "num_firmas_restantes" => $num_firmas_restantes,
             "pct_firmas" => $pct_firmas,
             "pct_pendiente" => $pct_pendiente,
-            "debug1" => ($metas["meta_padron"] / 100),
         );
 
         $this->response($resumen);
@@ -72,12 +74,12 @@ class Registros extends MY_Controller {
 
     public function get_count_get() {
         $datos = $this->registro->get_count();
-        $this->response($datos);
+        $this->response(array("count" => $datos));
     }
 
     public function get_count_error_get() {
         $datos = $this->registro->get_count_error();
-        $this->response($datos);
+        $this->response(array("count" => $datos));
     }
 
     public function get_count_error_lote_get($id_lote) {
@@ -169,8 +171,13 @@ class Registros extends MY_Controller {
 
         $lote = $this->lote->create_one($lote);
 
+        $path = "./public/$this->dir/registros";
 
-        $config['upload_path'] = './public/registros';
+        if (!file_exists($path)) {
+            mkdir($path, 0777, TRUE);
+        }
+
+        $config['upload_path'] = $path;
         $config['allowed_types'] = 'xls|xlsx';
         $config['max_size'] = 4096; //4MB
         $config['overwrite'] = FALSE;
@@ -187,11 +194,16 @@ class Registros extends MY_Controller {
         } else {
             $data = $this->upload->data();
             //leemos los datos del array
-            $excel = $this->_excelToarray($data['file_name']);
+            // en data['file_name'] solo es el nombre sin path
+            // en data['file_path´] solo el path absoluto
+            // en data['full_path'] el path absoluto y filename
+            $excel = $this->_excelToarray($path . "/" . $data['file_name']);
             //insertamos en la tabla de validos o errores
-            $num_registros = $this->registro->create_many($lote["id_lote"], $excel);
+            $datos_lote = $this->registro->create_many($lote["id_lote"], $excel);
+            $datos_lote['path'] = "api/public/$this->dir/registros";
+            $datos_lote['filename'] = $data['file_name'];
             //actualizamos el lote con el numero de registros
-            $lote = $this->lote->update_one($lote["id_lote"], $num_registros);
+            $lote = $this->lote->update_one($lote["id_lote"], $datos_lote);
             //devolvemos el lote con el conteo de registros
             $this->response($lote);
 
@@ -201,7 +213,7 @@ class Registros extends MY_Controller {
 
     private function _excelToarray($filename) {
         //creamos el reader
-        $nombre_archivo = "./public/registros/" . $filename;
+        $nombre_archivo = $filename;
 
         $tipo_archivo = PHPExcel_IOFactory::identify($nombre_archivo);
         $reader = PHPExcel_IOFactory::createReader($tipo_archivo);
@@ -213,7 +225,7 @@ class Registros extends MY_Controller {
         //$lastColLetter = $worksheetData[0]['lastColumnLetter'];
         $lastColLetter = 'H';
 
-        $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
+        $filtro = new MyReadFilter(2, $totalRows, range('A', $lastColLetter));
         $reader->setReadFilter($filtro);
 
         $excel = $reader->load($nombre_archivo);
@@ -227,7 +239,23 @@ class Registros extends MY_Controller {
 
         $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
 
-        foreach ($sheetData as $fila) {
+        /*
+          foreach ($sheetData as $fila) {
+          $data[] = array(
+          "folio" => $fila['A'],
+          "clave_elector" => $fila['B'],
+          "ocr" => $fila['C'],
+          "ap_paterno" => $fila['D'],
+          "ap_materno" => $fila['E'],
+          "nombre" => $fila['F'],
+          //"cel" => $fila['G'],
+          "id_seccion" => $fila['G']
+          );
+          } */
+
+        //comenzamos por la fila 2 porque en la 1 está la cabecera
+        for ($i = 2; $i <= count($sheetData); $i++) {
+            $fila = $sheetData[$i];
             $data[] = array(
                 "folio" => $fila['A'],
                 "clave_elector" => $fila['B'],
@@ -235,10 +263,12 @@ class Registros extends MY_Controller {
                 "ap_paterno" => $fila['D'],
                 "ap_materno" => $fila['E'],
                 "nombre" => $fila['F'],
-                //"cel" => $fila['G'],
-                "id_seccion" => $fila['G']
+                "id_seccion" => $fila['G'],
+                "fila" => $i
             );
         }
+
+
 
         return $data;
     }

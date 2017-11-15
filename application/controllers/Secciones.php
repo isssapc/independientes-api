@@ -10,11 +10,14 @@ include 'PHPExcel/IOFactory.php';
 
 class Secciones extends MY_Controller {
 
+    private $dir;
+
     public function __construct() {
         parent::__construct();
 
         //en el parent parent::__construct se ejecutan los operaciones de middleware
         $database = $this->middlewares['auth']->claims["db"];
+        $this->dir = $this->middlewares['auth']->claims["dir"];
         $this->db->db_select($database);
 
         $this->load->model("seccion");
@@ -39,7 +42,7 @@ class Secciones extends MY_Controller {
 
     public function get_count_get() {
         $datos = $this->seccion->get_count();
-        $this->response($datos);
+        $this->response(array('count' => $datos));
     }
 
     public function get_page_get($pageSize, $page) {
@@ -63,6 +66,11 @@ class Secciones extends MY_Controller {
         $this->response(array("count" => $count));
     }
 
+    public function del_all_post() {
+        $datos = $this->seccion->del_all();
+        $this->response($datos);
+    }
+
     public function del_seccions_post() {
         $ids = $this->post("id_seccions");
         $datos = $this->seccion->del_many($ids);
@@ -82,7 +90,14 @@ class Secciones extends MY_Controller {
     }
 
     public function upload_excel_post() {
-        $config['upload_path'] = './public/secciones';
+
+        $path = "./public/$this->dir/secciones";
+
+        if (!file_exists($path)) {
+            mkdir($path, 0777, TRUE);
+        }
+
+        $config['upload_path'] = $path;
         $config['allowed_types'] = 'xls|xlsx';
         $config['max_size'] = 4096; //4MB
         $config['overwrite'] = FALSE;
@@ -98,7 +113,7 @@ class Secciones extends MY_Controller {
             $this->response(["error" => $error], REST_Controller::HTTP_BAD_REQUEST);
         } else {
             $data = $this->upload->data();
-            $excel = $this->_excelToarray($data['file_name']);
+            $excel = $this->_excelToarray($path . '/' . $data['file_name']);
             $data = $this->seccion->create_many($excel);
             $this->response($data);
         }
@@ -106,7 +121,7 @@ class Secciones extends MY_Controller {
 
     private function _excelToarray($filename) {
         //creamos el reader
-        $nombre_archivo = "./public/secciones/" . $filename;
+        $nombre_archivo = $filename;
 
         $tipo_archivo = PHPExcel_IOFactory::identify($nombre_archivo);
         $reader = PHPExcel_IOFactory::createReader($tipo_archivo);
@@ -116,11 +131,11 @@ class Secciones extends MY_Controller {
         $worksheetData = $reader->listWorksheetInfo($nombre_archivo);
         $totalRows = $worksheetData[0]["totalRows"];
         $totalCols = $worksheetData[0]["totalColumns"];
-        $lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        //$lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        $lastColLetter = 'B';
 
-
-
-        $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
+        //la fila 1 está reservada para la cabecera
+        $filtro = new MyReadFilter(2, $totalRows, range('A', $lastColLetter));
         $reader->setReadFilter($filtro);
 
         $excel = $reader->load($nombre_archivo);
@@ -136,11 +151,13 @@ class Secciones extends MY_Controller {
         $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
 
         foreach ($sheetData as $fila) {
-            $data[] = array(
-                "id_seccion" => $fila['A'],
-                //"nombre" => $fila['B'],
-                "num_electores" => $fila['B']
-            );
+            //al menos debe tener valor el id_seccion
+            if (isset($fila['A'])) {
+                $data[] = array(
+                    "id_seccion" => $fila['A'],
+                    "num_electores" => $fila['B']
+                );
+            }
         }
 
         return $data;

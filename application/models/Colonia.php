@@ -56,6 +56,15 @@ class Colonia extends CI_Model {
         return $count;
     }
 
+    public function del_all() {
+
+        $this->db->from('colonia');
+        $this->db->truncate();
+
+        $count = $this->db->count_all('colonia');
+        return array('count' => $count);
+    }
+
     /*
      * 
      * TODO

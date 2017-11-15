@@ -56,6 +56,15 @@ class Seccion extends CI_Model {
         return $count;
     }
 
+    public function del_all() {
+
+        $this->db->from('seccion');
+        $this->db->truncate();
+
+        $count = $this->db->count_all('seccion');
+        return array('count' => $count);
+    }
+
     /*
      * 
      * TODO

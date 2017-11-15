@@ -11,10 +11,13 @@ include 'PHPExcel/IOFactory.php';
 
 class Colonias extends MY_Controller {
 
+    private $dir;
+
     public function __construct() {
         parent::__construct();
         //en el parent parent::__construct se ejecutan los operaciones de middleware
         $database = $this->middlewares['auth']->claims["db"];
+        $this->dir = $this->middlewares['auth']->claims["dir"];
         $this->db->db_select($database);
 
         $this->load->model("colonia");
@@ -39,7 +42,7 @@ class Colonias extends MY_Controller {
 
     public function get_count_get() {
         $datos = $this->colonia->get_count();
-        $this->response($datos);
+        $this->response(array("count" => $datos));
     }
 
     public function get_page_get($pageSize, $page) {
@@ -68,6 +71,11 @@ class Colonias extends MY_Controller {
         $this->response($datos);
     }
 
+    public function del_all_post() {
+        $datos = $this->colonia->del_all();
+        $this->response($datos);
+    }
+
     public function create_colonia_post() {
         $colonia = $this->post("colonia");
         $datos = $this->colonia->create_one($colonia);
@@ -88,7 +96,14 @@ class Colonias extends MY_Controller {
 
     public function upload_excel_post() {
 
-        $config['upload_path'] = './public/colonias';
+
+        $path = "./public/$this->dir/colonias";
+
+        if (!file_exists($path)) {
+            mkdir($path, 0777, TRUE);
+        }
+
+        $config['upload_path'] = $path;
         $config['allowed_types'] = 'xls|xlsx';
         $config['max_size'] = 4096; //4MB
         $config['overwrite'] = FALSE;
@@ -105,7 +120,7 @@ class Colonias extends MY_Controller {
         } else {
             $data = $this->upload->data();
             //$this->response(["data" => $data]);
-            $excel = $this->_excelToarray($data['file_name']);
+            $excel = $this->_excelToarray($path . '/' . $data['file_name']);
             $data = $this->colonia->create_many($excel);
             $this->response($data);
         }
@@ -113,7 +128,7 @@ class Colonias extends MY_Controller {
 
     private function _excelToarray($filename) {
         //creamos el reader
-        $nombre_archivo = "./public/colonias/" . $filename;
+        $nombre_archivo = $filename;
 
         $tipo_archivo = PHPExcel_IOFactory::identify($nombre_archivo);
         $reader = PHPExcel_IOFactory::createReader($tipo_archivo);
@@ -122,9 +137,11 @@ class Colonias extends MY_Controller {
         $worksheetData = $reader->listWorksheetInfo($nombre_archivo);
         $totalRows = $worksheetData[0]["totalRows"];
         $totalCols = $worksheetData[0]["totalColumns"];
-        $lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        //$lastColLetter = $worksheetData[0]['lastColumnLetter'];
+        $lastColLetter = 'B';
 
-        $filtro = new MyReadFilter(1, $totalRows, range('A', $lastColLetter));
+        //empieza en la fila 2, la 1 está reservada para la cabecera
+        $filtro = new MyReadFilter(2, $totalRows, range('A', $lastColLetter));
         $reader->setReadFilter($filtro);
 
         $excel = $reader->load($nombre_archivo);
@@ -139,12 +156,13 @@ class Colonias extends MY_Controller {
         $sheetData = $worksheet->toArray(NULL, TRUE, TRUE, TRUE);
 
         foreach ($sheetData as $fila) {
-            $data[] = array(
-                //"id_colonia" => $fila['A'],
-                //"id_colonia" => $fila['A'],
-                "nombre" => $fila['B'],
-                "id_seccion" => $fila['C']
-            );
+            if (isset($fila['A']) && isset($fila['B'])) {
+                $data[] = array(
+                    //"id_colonia" => $fila['A'],                    
+                    "nombre" => $fila['A'],
+                    "id_seccion" => $fila['B']
+                );
+            }
         }
 
         return $data;

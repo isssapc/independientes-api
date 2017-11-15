@@ -7,13 +7,13 @@ require(APPPATH . 'libraries/jose/URLSafeBase64.php');
 class Auth extends MY_Controller {
 
     public function __construct() {
-        parent::__construct(); 
+        parent::__construct();
         $this->load->model('usuario');
     }
 
     public function _create_token($user) {
-        
-        /* * *
+
+        /*         * *
          * sub => Subject
          * iat => IssuedAt
          * exp => Expiration
@@ -22,13 +22,15 @@ class Auth extends MY_Controller {
          * * */
 
         $payload = [
+            "iss" => "independientes",
             "sub" => $user['id_usuario'],
             "rol" => $user['rol'],
-            "db" => $user["db"], //esta sería la base de datos            
+            "db" => $user["db"], //esta sería la base de datos
+            "dir" => $user["dir"], //el directorio donde se guardan los archivos
             "iat" => time(),
             "exp" => time() + (60 * 60 * 4) //1 hora * 4
         ];
-        
+
         $jwt = new JOSE_JWT($payload);
         $jws = $jwt->sign($this->config->item('token_secret'));
 
@@ -36,7 +38,7 @@ class Auth extends MY_Controller {
     }
 
     public function login_post() {
-       
+
         $usuario = $this->post("usuario");
 
 

@@ -120,8 +120,10 @@ class Registro extends CI_Model {
         $page = intval($page);
         $offset = $pageSize * $page;
 
-        $sql = "SELECT *
-                FROM registro_error LIMIT $offset,$pageSize";
+        $sql = "SELECT r.*, l.nombre AS lote
+                FROM registro_error r
+                JOIN lote l ON l.id_lote = r.id_lote
+                LIMIT $offset,$pageSize";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -158,6 +160,11 @@ class Registro extends CI_Model {
                 FROM registro r
                 WHERE r.id_registro= $id LIMIT 1";
         $query = $this->db->query($sql);
+        return $query->row_array();
+    }
+
+    public function get_by_clave($clave_elector) {
+        $query = $this->db->get_where('registro', array('clave_elector' => $clave_elector), 1, 0);
         return $query->row_array();
     }
 
@@ -255,7 +262,9 @@ class Registro extends CI_Model {
         $count = 0;
         $count_errores = 0;
         for ($i = 0; $i < count($registros); $i++) {
+            //asignamos el id_lote a cada registro
             $registros[$i]["id_lote"] = $id_lote;
+            //comprobamos si tiene algun error
             $error = $this->tieneErrores($registros[$i]);
             if ($error === false) {
                 $this->db->insert('registro', $registros[$i]);
@@ -292,6 +301,13 @@ class Registro extends CI_Model {
 
     private function tieneErrores($registro) {
         $error = false;
+
+        $data = $this->get_by_clave($registro['clave_elector']);
+        if (isset($data)) {
+            $error[] = "Registro duplicado";
+        }
+
+
         if (!isset($registro["clave_elector"]) || empty($registro["clave_elector"])) {
             $error[] = "Clave de Elector vacía";
         } else {
@@ -308,8 +324,6 @@ class Registro extends CI_Model {
                 $error[] = "La clave OCR tiene una longitud distinta a 13 caracteres";
             }
         }
-
-
 
 
         if (!isset($registro["id_seccion"]) || empty($registro["id_seccion"])) {
