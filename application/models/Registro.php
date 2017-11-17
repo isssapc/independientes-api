@@ -8,8 +8,20 @@ class Registro extends CI_Model {
 
     public function get_all() {
 
-        $sql = "SELECT *
-                FROM registro LIMIT 100";
+        $sql = "SELECT r.*, l.nombre AS lote
+                FROM registro r 
+                JOIN lote l ON l.id_lote = r.id_lote
+                LIMIT 10000";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function get_all_error() {
+
+        $sql = "SELECT r.*, l.nombre AS lote
+                FROM registro_error r
+                JOIN lote l ON l.id_lote = r.id_lote
+                LIMIT 10000";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -141,6 +153,14 @@ class Registro extends CI_Model {
         return $query->result_array();
     }
 
+    public function get_error_lote($id_lote) {
+        $sql = "SELECT *
+                FROM registro_error 
+                WHERE id_lote= $id_lote ";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
     public function get_page_validos_lote($id_lote, $pageSize, $page) {
 
         $pageSize = intval($pageSize);
@@ -150,6 +170,14 @@ class Registro extends CI_Model {
         $sql = "SELECT *
                 FROM registro 
                 WHERE id_lote= $id_lote LIMIT $offset,$pageSize ";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function get_validos_lote($id_lote) {
+        $sql = "SELECT *
+                FROM registro 
+                WHERE id_lote= $id_lote";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -211,7 +239,6 @@ class Registro extends CI_Model {
     }
 
     public function del_one_error($id) {
-
         $this->db->where('id_registro', $id);
         $this->db->delete('registro_error');
         $count = $this->db->affected_rows();
@@ -279,20 +306,37 @@ class Registro extends CI_Model {
         return array("num_registros_validos" => $count, "num_registros_errores" => $count_errores);
     }
 
+    public function update_one_error($id, $props) {
+
+        //hacemos la validacion
+        $error = $this->tieneErrores($props);
+        $valido = false;
+        $registro = null;
+        //si se ha corregido el error entonces lo insertamos en los registros validos
+        if ($error === false) {
+            $this->db->insert('registro', $props);
+            $count = $this->db->affected_rows();
+            $valido = true;
+            //lo borramos de los errores
+            $borrado = $this->del_one_error($id);
+        } else {
+            //no se ha corregido el error, actualizamos el registro error
+            $props["errores"] = implode(",", $error);
+            $where = "id_registro = $id";
+            $sql = $this->db->update_string('registro_error', $props, $where);
+            $this->db->query($sql);
+            $count = $this->db->affected_rows();
+            //obtenemos el registro actualizado y lo devolvemos
+            $registro = $this->get_one_error($id);
+        }
+
+        return array('valido' => $valido, 'registro' => $registro);
+    }
+
     public function update_one($id, $props) {
 
         $where = "id_registro = $id";
         $sql = $this->db->update_string('registro', $props, $where);
-        $this->db->query($sql);
-
-        $registro = $this->get_one($id);
-        return $registro;
-    }
-
-    public function update_one_error($id, $props) {
-
-        $where = "id_registro = $id";
-        $sql = $this->db->update_string('registro_error', $props, $where);
         $this->db->query($sql);
 
         $registro = $this->get_one_error($id);
@@ -312,16 +356,16 @@ class Registro extends CI_Model {
             $error[] = "Clave de Elector vacía";
         } else {
             if (strlen(trim($registro["clave_elector"])) != 18) {
-                $error[] = "La clave de Elector tiene una longitud distinta a 18 caracteres";
+                $error[] = "La C. de Elector tiene una longitud distinta a 18 cars.";
             }
         }
 
 
         if (!isset($registro["ocr"]) || empty($registro["ocr"])) {
-            $error[] = "Clave OCR vacía";
+            $error[] = "OCR vacío";
         } else {
             if (strlen(trim($registro["ocr"])) != 13) {
-                $error[] = "La clave OCR tiene una longitud distinta a 13 caracteres";
+                $error[] = "El OCR tiene una longitud distinta a 13 cars.";
             }
         }
 

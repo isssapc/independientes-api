@@ -55,6 +55,11 @@ class Colonias extends MY_Controller {
         $this->response($datos);
     }
 
+    public function get_colonias_seccion_get($id_seccion) {
+        $datos = $this->colonia->get_colonias_seccion($id_seccion);
+        $this->response($datos);
+    }
+
     public function search_colonia_get($nombre) {
         $datos = $this->colonia->search_by_nombre($nombre);
         $this->response($datos);

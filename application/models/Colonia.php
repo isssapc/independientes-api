@@ -14,6 +14,15 @@ class Colonia extends CI_Model {
         return $query->result_array();
     }
 
+    public function get_colonias_seccion($id_seccion) {
+
+        $sql = "SELECT c.nombre
+                FROM colonia c
+                WHERE c.id_seccion= $id_seccion";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
     public function get_count() {
 
         return $this->db->count_all('colonia');

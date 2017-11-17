@@ -2,6 +2,9 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+define('FPDF_FONTPATH', APPPATH . 'libraries/fpdf181/font/');
+require_once APPPATH . 'libraries/fpdf181/fpdf.php';
+
 /** Include path * */
 set_include_path(APPPATH . 'libraries/PHPExcel-1.8/Classes/');
 
@@ -134,8 +137,14 @@ class Registros extends MY_Controller {
     }
 
     public function del_registro_error_post($id) {
-        //$id= $this->post("id_registro");
+
+        $registro = $this->registro->get_one_error($id);
         $count = $this->registro->del_one_error($id);
+
+        //actualizamos el lote
+        $count_error = $this->registro->get_count_error_lote($registro['id_lote']);
+        $this->lote->update_one($registro['id_lote'], array('num_registros_errores' => $count_error));
+
         $this->response(array("count" => $count));
     }
 
@@ -160,6 +169,14 @@ class Registros extends MY_Controller {
     public function update_registro_error_post($id) {
         $registro = $this->post("registro");
         $datos = $this->registro->update_one_error($id, $registro);
+
+        //actualizamos el lote si se corrigió el error
+        if ($datos['valido']) {
+            $count_error = $this->registro->get_count_error_lote($registro['id_lote']);
+            $count_validos = $this->registro->get_count_validos_lote($registro['id_lote']);
+            $this->lote->update_one($registro['id_lote'], array('num_registros_validos' => $count_validos, 'num_registros_errores' => $count_error));
+        }
+
         $this->response($datos);
     }
 
@@ -304,6 +321,241 @@ class Registros extends MY_Controller {
         //$this->load->helper('download');
 //        force_download("prueba.xlsx",$content, true);
         //force_download("./public/prueba.xlsx", NULL, true);
+    }
+
+    public function pdf_errores_lote_get($id_lote) {
+
+        $datos = $this->registro->get_error_lote($id_lote);
+        $lote = $this->lote->get_one($id_lote);
+
+        $frame = 0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("L", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES EN LOTE DE CAPTURA'), $frame, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Lote: ' . $lote['nombre']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Responsable: ' . $lote['responsable']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha importación: ' . $lote['fecha']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Archivo: ' . $lote['filename']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Núm. Errores: ' . $lote['num_registros_errores']), $frame, $ln, 'L');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+        $pdf->Cell(10, $hl, "Folio", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Elector", $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, "OCR", $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, "A. Paterno", $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, "A. Materno", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Nombre", $cframe, $right, 'C');
+        $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(0, $hl, "Error", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+
+        foreach ($datos as $registro) {
+
+            $errores = explode(",", $registro['errores']);
+            $strErrores = "";
+            foreach ($errores as $error) {
+                $strErrores = $strErrores . '- ' . $error . "\n";
+            }
+
+            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
+            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L');
+        }
+
+
+
+
+        $pdf->Output("ReporteErroresLote.pdf", "I");
+    }
+
+    public function pdf_validos_lote_get($id_lote) {
+
+        $datos = $this->registro->get_validos_lote($id_lote);
+        $lote = $this->lote->get_one($id_lote);
+
+        $frame = 0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("L", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'REGISTROS VÁLIDOS EN LOTE DE CAPTURA'), $frame, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Lote: ' . $lote['nombre']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Responsable: ' . $lote['responsable']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha importación: ' . $lote['fecha']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Archivo: ' . $lote['filename']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Núm. Registros Válidos: ' . $lote['num_registros_validos']), $frame, $ln, 'L');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+        $pdf->Cell(15, $hl, "Folio", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Elector", $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, "OCR", $cframe, $right, 'C');
+        $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(50, $hl, "A. Paterno", $cframe, $right, 'C');
+        $pdf->Cell(50, $hl, "A. Materno", $cframe, $right, 'C');
+        $pdf->Cell(0, $hl, "Nombre", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+        foreach ($datos as $registro) {
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
+            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L');
+        }
+
+        $pdf->Output("ReporteRegistrosValidadosLote.pdf", "I");
+    }
+
+    public function pdf_validos_get() {
+
+        $datos = $this->registro->get_all();
+
+
+        $frame = 0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("L", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'REGISTROS VÁLIDOS'), $frame, $ln, 'C');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+        $pdf->Cell(15, $hl, "Lote", $cframe, $right, 'C');
+        $pdf->Cell(15, $hl, "Folio", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Elector", $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, "OCR", $cframe, $right, 'C');
+        $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(50, $hl, "A. Paterno", $cframe, $right, 'C');
+        $pdf->Cell(50, $hl, "A. Materno", $cframe, $right, 'C');
+        $pdf->Cell(0, $hl, "Nombre", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+
+        foreach ($datos as $registro) {
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
+            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L');
+        }
+
+        $pdf->Output("ReporteRegistrosValidados.pdf", "I");
+    }
+
+    public function pdf_errores_get() {
+
+        $datos = $this->registro->get_all_error();
+
+
+        $frame = 0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("L", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES DE CAPTURA'), $frame, $ln, 'C');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+        $pdf->Cell(15, $hl, "Lote", $cframe, $right, 'C');
+        $pdf->Cell(10, $hl, "Folio", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Elector", $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, "OCR", $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, "A. Paterno", $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, "A. Materno", $cframe, $right, 'C');
+        $pdf->Cell(35, $hl, "Nombre", $cframe, $right, 'C');
+        $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(0, $hl, "Error", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+
+        foreach ($datos as $registro) {
+
+            $errores = explode(",", $registro['errores']);
+            $strErrores = "";
+            foreach ($errores as $error) {
+                $strErrores = $strErrores . '- ' . $error . "\n";
+            }
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L');
+            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
+            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L');
+        }
+
+        $pdf->Output("ReporteErrores.pdf", "I");
+    }
+
+    public function pdf_avance_seccion_get() {
+
+        $registros = $this->registro->group_by_seccion();
+
+        $frame = 0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("P", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'AVANCE POR SECCIÓN'), $frame, $ln, 'C');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+        $pdf->Cell(50, $hl, '', 0, $right, 'C');
+        $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', "Núm. Electores"), $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', "Núm. Firmas"), $cframe, $right, 'C');
+        $pdf->Cell(20, $hl, "Porcentaje", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+
+        foreach ($registros as $registro) {
+            $pdf->Cell(50, $hl, '', $frame, $right, 'C');
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'C');
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_electores'])), $frame, $right, 'C');
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_registros'])), $frame, $right, 'C');
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['porcentaje'] * 100, 2)) . ' %', $frame, $ln, 'L');
+        }
+
+        $pdf->Output("ReporteAvancePorSeccion.pdf", "I");
     }
 
 }
