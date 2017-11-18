@@ -26,6 +26,10 @@ class Registros extends MY_Controller {
         $this->load->model("registro");
         $this->load->model("lote");
         $this->load->model("meta");
+        $this->load->model("colonia");
+
+        $timezone = 'America/Mexico_City';
+        date_default_timezone_set($timezone);
     }
 
     protected function middleware() {
@@ -328,7 +332,7 @@ class Registros extends MY_Controller {
         $datos = $this->registro->get_error_lote($id_lote);
         $lote = $this->lote->get_one($id_lote);
 
-        $frame = 0;
+        $frame = 'T'; //0;
         $right = 0;
         $ln = 1;
         $hl = 6;
@@ -336,13 +340,13 @@ class Registros extends MY_Controller {
         $pdf = new FPDF("L", "mm", "Letter");
         $pdf->AddPage();
         $pdf->SetFont('Arial', '', 14);
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES EN LOTE DE CAPTURA'), $frame, $ln, 'C');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES EN LOTE DE CAPTURA'), 0, $ln, 'C');
         $pdf->SetFont('Arial', '', 8);
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Lote: ' . $lote['nombre']), $frame, $ln, 'L');
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Responsable: ' . $lote['responsable']), $frame, $ln, 'L');
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha importación: ' . $lote['fecha']), $frame, $ln, 'L');
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Archivo: ' . $lote['filename']), $frame, $ln, 'L');
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Núm. Errores: ' . $lote['num_registros_errores']), $frame, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Lote: ' . $lote['nombre']), 0, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Responsable: ' . $lote['responsable']), 0, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha importación: ' . $lote['fecha']), 0, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Archivo: ' . $lote['filename']), 0, $ln, 'L');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Núm. Errores: ' . $lote['num_registros_errores']), 0, $ln, 'L');
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', 'B', 8);
@@ -358,6 +362,8 @@ class Registros extends MY_Controller {
 
         $pdf->SetFont('');
 
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
         foreach ($datos as $registro) {
 
             $errores = explode(",", $registro['errores']);
@@ -366,14 +372,16 @@ class Registros extends MY_Controller {
                 $strErrores = $strErrores . '- ' . $error . "\n";
             }
 
-            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
-            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
-            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
-            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L');
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
-            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L');
+            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L', $fill);
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L', $fill);
+            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L', $fill);
+
+            $fill = !$fill;
         }
 
 
@@ -415,14 +423,18 @@ class Registros extends MY_Controller {
         $pdf->Cell(0, $hl, "Nombre", $cframe, $ln, 'C');
 
         $pdf->SetFont('');
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
         foreach ($datos as $registro) {
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
-            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
-            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
-            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
-            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L', $fill);
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L', $fill);
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L', $fill);
+
+            $fill = !$fill;
         }
 
         $pdf->Output("ReporteRegistrosValidadosLote.pdf", "I");
@@ -430,6 +442,7 @@ class Registros extends MY_Controller {
 
     public function pdf_validos_get() {
 
+        $now = date("Y-m-d H:i:s");
         $datos = $this->registro->get_all();
 
 
@@ -442,6 +455,8 @@ class Registros extends MY_Controller {
         $pdf->AddPage();
         $pdf->SetFont('Arial', '', 14);
         $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'REGISTROS VÁLIDOS'), $frame, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha: ' . $now), 0, $ln, 'L');
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', 'B', 8);
@@ -457,15 +472,19 @@ class Registros extends MY_Controller {
 
         $pdf->SetFont('');
 
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
         foreach ($datos as $registro) {
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L');
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
-            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
-            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
-            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
-            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L', $fill);
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L', $fill);
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L', $fill);
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(50, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $ln, 'L', $fill);
+
+            $fill = !$fill;
         }
 
         $pdf->Output("ReporteRegistrosValidados.pdf", "I");
@@ -473,10 +492,11 @@ class Registros extends MY_Controller {
 
     public function pdf_errores_get() {
 
+        $now = date("Y-m-d H:i:s");
         $datos = $this->registro->get_all_error();
 
 
-        $frame = 0;
+        $frame = 'T'; //0;
         $right = 0;
         $ln = 1;
         $hl = 6;
@@ -484,7 +504,9 @@ class Registros extends MY_Controller {
         $pdf = new FPDF("L", "mm", "Letter");
         $pdf->AddPage();
         $pdf->SetFont('Arial', '', 14);
-        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES DE CAPTURA'), $frame, $ln, 'C');
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'ERRORES DE CAPTURA'), 0, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha: ' . $now), 0, $ln, 'L');
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', 'B', 8);
@@ -501,6 +523,8 @@ class Registros extends MY_Controller {
 
         $pdf->SetFont('');
 
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
         foreach ($datos as $registro) {
 
             $errores = explode(",", $registro['errores']);
@@ -508,15 +532,17 @@ class Registros extends MY_Controller {
             foreach ($errores as $error) {
                 $strErrores = $strErrores . '- ' . $error . "\n";
             }
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L');
-            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L');
-            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L');
-            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L');
-            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L');
-            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L');
-            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L');
-            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L');
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['lote']), $frame, $right, 'L', $fill);
+            $pdf->Cell(10, $hl, iconv('utf-8', 'iso-8859-1', $registro['folio']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['clave_elector']), $frame, $right, 'L', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', $registro['ocr']), $frame, $right, 'L', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_paterno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', $registro['ap_materno']), $frame, $right, 'L', $fill);
+            $pdf->Cell(35, $hl, iconv('utf-8', 'iso-8859-1', $registro['nombre']), $frame, $right, 'L', $fill);
+            $pdf->Cell(15, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'L', $fill);
+            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strErrores), $frame, 'L', $fill);
+
+            $fill = !$fill;
         }
 
         $pdf->Output("ReporteErrores.pdf", "I");
@@ -524,6 +550,7 @@ class Registros extends MY_Controller {
 
     public function pdf_avance_seccion_get() {
 
+        $now = date("Y-m-d H:i:s");
         $registros = $this->registro->group_by_seccion();
 
         $frame = 0;
@@ -535,6 +562,8 @@ class Registros extends MY_Controller {
         $pdf->AddPage();
         $pdf->SetFont('Arial', '', 14);
         $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'AVANCE POR SECCIÓN'), $frame, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha: ' . $now), 0, $ln, 'L');
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', 'B', 8);
@@ -547,12 +576,68 @@ class Registros extends MY_Controller {
 
         $pdf->SetFont('');
 
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
         foreach ($registros as $registro) {
             $pdf->Cell(50, $hl, '', $frame, $right, 'C');
-            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'C');
-            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_electores'])), $frame, $right, 'C');
-            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_registros'])), $frame, $right, 'C');
-            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['porcentaje'] * 100, 2)) . ' %', $frame, $ln, 'L');
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'C', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_electores'])), $frame, $right, 'C', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_registros'])), $frame, $right, 'C', $fill);
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['porcentaje'] * 100, 2)) . ' %', $frame, $ln, 'L', $fill);
+            $fill = !$fill;
+        }
+
+        $pdf->Output("ReporteAvancePorSeccion.pdf", "I");
+    }
+
+    public function pdf_avance_seccion_colonias_get() {
+
+        $now = date("Y-m-d H:i:s");
+        $registros = $this->registro->group_by_seccion();
+
+        $frame = 'T'; //0;
+        $right = 0;
+        $ln = 1;
+        $hl = 6;
+
+        $pdf = new FPDF("P", "mm", "Letter");
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'AVANCE POR SECCIÓN'), 0, $ln, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, $hl, iconv('utf-8', 'iso-8859-1', 'Fecha: ' . $now), 0, $ln, 'L');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $cframe = 1;
+
+        $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', "Sección"), $cframe, $right, 'C');
+        $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', "Núm. Electores"), $cframe, $right, 'C');
+        $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', "Núm. Firmas"), $cframe, $right, 'C');
+        $pdf->Cell(20, $hl, "Porcentaje", $cframe, $right, 'C');
+        $pdf->Cell(0, $hl, "Colonias", $cframe, $ln, 'C');
+
+        $pdf->SetFont('');
+
+        $pdf->SetFillColor(224, 235, 255);
+        $fill = false;
+        foreach ($registros as $registro) {
+
+            $colonias = $this->colonia->get_colonias_seccion($registro['id_seccion']);
+
+            $strColonias = '';
+            //'- '
+            foreach ($colonias as $colonia) {
+                $strColonias = $strColonias . '- ' . $colonia['nombre'] . "\n";
+            }
+
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', $registro['id_seccion']), $frame, $right, 'C', $fill);
+            $pdf->Cell(30, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_electores'])), $frame, $right, 'C', $fill);
+            $pdf->Cell(25, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['num_registros'])), $frame, $right, 'C', $fill);
+            $pdf->Cell(20, $hl, iconv('utf-8', 'iso-8859-1', number_format($registro['porcentaje'] * 100, 2)) . ' %', $frame, $right, 'L', $fill);
+            $pdf->MultiCell(0, $hl, iconv('utf-8', 'iso-8859-1', $strColonias), $frame, 'L', $fill);
+
+            $fill = !$fill;
         }
 
         $pdf->Output("ReporteAvancePorSeccion.pdf", "I");
